@@ -165,6 +165,7 @@
       <id>update</id>
       <build>
         <plugins>
+          <!--
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
@@ -204,6 +205,7 @@
               </execution>
             </executions>
           </plugin>
+          -->
           <plugin>
             <groupId>org.exoplatform.crowdin</groupId>
             <artifactId>crowdin-maven-plugin</artifactId>
@@ -217,6 +219,58 @@
                 </goals>
                 <configuration>
                   <startDir>${project.basedir}/eXoProjects/</startDir>
+                  <sourcesRepositories>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/platform.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>platform-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/platform-ui.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>platform-ui-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/ecms.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>ecms-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/calendar.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>calendar-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/forum.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>forum-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/wiki.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>wiki-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/social.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>social-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/commons.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>commons-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/integration.git</uri>
+                      <branch>stable/4.0.x</branch>
+                      <localDirectory>integration-4.0.x</localDirectory>
+                    </sourcesRepository>
+                    <sourcesRepository>
+                      <uri>git@github.com:exoplatform/gatein-portal.git</uri>
+                      <branch>3.5.x-PLF</branch>
+                      <localDirectory>gatein-portal-3.5.x</localDirectory>
+                    </sourcesRepository>
+                  </sourcesRepositories>
                 </configuration>
               </execution>
             </executions>

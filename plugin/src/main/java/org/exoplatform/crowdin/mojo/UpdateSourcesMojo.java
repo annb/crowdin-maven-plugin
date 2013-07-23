@@ -18,13 +18,8 @@
  */
 package org.exoplatform.crowdin.mojo;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
@@ -37,10 +32,24 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.eclipse.jgit.api.ApplyResult;
+import org.eclipse.jgit.api.CreateBranchCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.errors.PatchApplyException;
+import org.eclipse.jgit.diff.DiffAlgorithm;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
+import org.eclipse.jgit.diff.RawTextComparator;
+import org.eclipse.jgit.dircache.DirCacheIterator;
+import org.eclipse.jgit.lib.ConfigConstants;
+import org.eclipse.jgit.lib.CoreConfig;
+import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.treewalk.FileTreeIterator;
 import org.exoplatform.crowdin.model.CrowdinFile.Type;
 import org.exoplatform.crowdin.model.CrowdinFileFactory;
 import org.exoplatform.crowdin.model.CrowdinTranslation;
-import org.exoplatform.crowdin.utils.FileUtils;
+import org.exoplatform.crowdin.model.SourcesRepository;
 import org.exoplatform.crowdin.utils.PropsToXML;
 
 /**
@@ -51,6 +60,45 @@ public class UpdateSourcesMojo extends AbstractCrowdinMojo {
 
   @Override
   public void executeMojo() throws MojoExecutionException, MojoFailureException {
+    getLog().info("Preparing projects ...");
+    for (SourcesRepository repository : getSourcesRepositories()) {
+      try {
+        // Create or update the reference repository
+        File bareRepository = new File(getStartDir(), repository.getName() + ".git");
+        if (bareRepository.exists()) {
+          Git git = Git.open(bareRepository);
+          getLog().info("Fetching repository " + repository.getName() + " ...");
+          git.fetch().call();
+          getLog().info("Done.");
+        } else {
+          getLog().info("Cloning repository " + repository.getName() + " ...");
+          Git git = Git.cloneRepository().setURI(repository.getUri()).
+              setDirectory(bareRepository).setRemote("origin").
+              setBare(true).setNoCheckout(true).call();
+          getLog().info("Done.");
+        }
+        // Create a copy for the given version
+        File localVersionRepository = new File(getStartDir(), repository.getLocalDirectory());
+        if (localVersionRepository.exists()) {
+          Git git = Git.open(localVersionRepository);
+          getLog().info("Reset repository " + repository.getLocalDirectory() + "...");
+          git.reset().setMode(ResetCommand.ResetType.HARD).setRef("origin/" + repository.getBranch()).call();
+          git.clean().setCleanDirectories(true).call();
+          getLog().info("Done.");
+        } else {
+          getLog().info("Creating working repository " + localVersionRepository + " ...");
+          Git git = Git.cloneRepository().setURI(bareRepository.getAbsolutePath()).setDirectory(localVersionRepository).setNoCheckout(true).call();
+          StoredConfig config = git.getRepository().getConfig();
+          config.setString("remote", "origin", "url", repository.getUri());
+          config.save();
+          git.checkout().setStartPoint("origin/" + repository.getBranch()).setName(repository.getBranch()).setCreateBranch(true).setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK).call();
+          getLog().info("Done.");
+        }
+      } catch (Exception e) {
+        throw new MojoExecutionException("Error while initializing project " + repository.getName(), e);
+      }
+    }
+    getLog().info("Projects ready.");
     File zip = new File(getProject().getBuild().getDirectory(), "all.zip");
     if (!zip.exists()) {
       try {
@@ -64,7 +112,7 @@ public class UpdateSourcesMojo extends AbstractCrowdinMojo {
     }
     extractZip(getStartDir(), zip.getPath());
     //get the translations status
-    File status_trans = new File(getProject().getBasedir(),"report/translation_status.xml");
+    File status_trans = new File(getProject().getBasedir(), "report/translation_status.xml");
     BufferedWriter writer = null;
     try {
       writer = new BufferedWriter(new FileWriter(status_trans));
@@ -77,10 +125,78 @@ public class UpdateSourcesMojo extends AbstractCrowdinMojo {
       } catch (IOException e) {
       }
     }
+    for (SourcesRepository repository : getSourcesRepositories()) {
+      try {
+        File localVersionRepository = new File(getStartDir(), repository.getLocalDirectory());
+        Git git = Git.open(localVersionRepository);
+        StoredConfig config = git.getRepository().getConfig();
+        config.setStringList(ConfigConstants.CONFIG_CORE_SECTION, null, "whitespace", Arrays.asList("trailing-space", "space-before-tab", "indent-with-non-tab", "cr-at-eol"));
+        config.setEnum(ConfigConstants.CONFIG_CORE_SECTION, null,
+                       ConfigConstants.CONFIG_KEY_AUTOCRLF, CoreConfig.AutoCRLF.INPUT);
+        config.save();
+        // Create a patch with local changes
+        getLog().info("Create patch for " + repository.getLocalDirectory() + "...");
+        File patchFile = new File(getProject().getBuild().getDirectory(), repository.getLocalDirectory() + ".patch");
+        if (patchFile.exists()) patchFile.delete();
+        OutputStream fos = new BufferedOutputStream(new FileOutputStream(patchFile));
+        DiffFormatter diffFormatter = new DiffFormatter(fos);
+        try {
+          diffFormatter.setRepository(git.getRepository());
+          diffFormatter.setDiffComparator(RawTextComparator.WS_IGNORE_ALL);
+          diffFormatter.setDiffAlgorithm(DiffAlgorithm.getAlgorithm(DiffAlgorithm.SupportedAlgorithm.HISTOGRAM));
+          List<DiffEntry> originalEntries = diffFormatter.scan(new DirCacheIterator(git.getRepository().readDirCache()), new FileTreeIterator(git.getRepository()));
+          List<DiffEntry> cleanedEntries = new ArrayList<DiffEntry>();
+          for (DiffEntry originalEntry : originalEntries) {
+            // We manually remove all empty hunks
+            if (!diffFormatter.toFileHeader(originalEntry).toEditList().isEmpty()) {
+              cleanedEntries.add(originalEntry);
+            }
+          }
+          diffFormatter.format(cleanedEntries);
+        } finally {
+          diffFormatter.flush();
+          diffFormatter.release();
+          fos.close();
+        }
+        getLog().info("Done.");
+        // Reset our local copy
+        getLog().info("Reset repository " + repository.getLocalDirectory() + "...");
+        git.reset().setMode(ResetCommand.ResetType.HARD).call();
+        git.clean().setCleanDirectories(true).call();
+        getLog().info("Done.");
+        // Apply the patch
+        getLog().info("Apply patch for " + repository.getLocalDirectory() + "...");
+        InputStream fis = new BufferedInputStream(new FileInputStream(patchFile));
+        try {
+          ApplyResult result = git.apply().setPatch(fis).call();
+          for (File updatedFile : result.getUpdatedFiles()) {
+            getLog().info("File updated : " + updatedFile.getPath());
+          }
+        } catch (PatchApplyException pee) {
+          getLog().error("Error while applying patch " + patchFile + " on " + repository.getLocalDirectory() + " : " + pee.getMessage());
+          continue;
+        } finally {
+          fis.close();
+        }
+        getLog().info("Done.");
+        getLog().info("Commit changes for " + repository.getLocalDirectory() + "...");
+        // Commit changes
+        git.add().addFilepattern(".").call();
+        git.commit().setMessage("Apply changes for " + getLangs() + " on " + repository.getName() + " " + repository.getVersion()).call();
+        getLog().info("Done.");
+        getLog().info("Pushing changes for " + repository.getLocalDirectory() + "...");
+        // Push it
+        //git.push().setDryRun(isDryRun()).call();
+        getLog().info("Done.");
+      } catch (Exception e) {
+        throw new MojoExecutionException("Error while updating project " + repository.getName(), e);
+      }
+    }
 
   }
 
-  private void extractZip(String _destFolder, String _zipFile) {
+
+  private void extractZip(File _destFolder, String _zipFile) {
     try {
       byte[] buf = new byte[1024];
       List<String> langs = Arrays.asList(getLangs().split(","));
@@ -153,7 +269,7 @@ public class UpdateSourcesMojo extends AbstractCrowdinMojo {
             fileName = name + "_" + lang + extension;
           }
 
-          String parentDir = _destFolder + proj + "/" + value.substring(0, value.lastIndexOf(File.separatorChar) + 1);
+          String parentDir = _destFolder + File.separator + proj + File.separator + value.substring(0, value.lastIndexOf(File.separatorChar) + 1);
           parentDir = parentDir.replace('/', File.separatorChar).replace('\\', File.separatorChar);
           String entryName = parentDir + fileName;
           Type resourceBundleType = (key.indexOf("gadget") >= 0) ? Type.GADGET : Type.PORTLET;
@@ -205,14 +321,14 @@ public class UpdateSourcesMojo extends AbstractCrowdinMojo {
               //use shell script
               //ShellScriptUtils.execShellscript("scripts/per-file-processing.sh", masterFile);
               //use java
-              FileUtils.replaceCharactersInFile(masterFile, "config/special_character_processing.properties", "UpdateSourceSpecialCharacters");
+              org.exoplatform.crowdin.utils.FileUtils.replaceCharactersInFile(masterFile, "config/special_character_processing.properties", "UpdateSourceSpecialCharacters");
 
               if (new File(entryName).exists()) {
                 config.save(entryName);
                 //use shell script
                 //ShellScriptUtils.execShellscript("scripts/per-file-processing.sh", entryName);
                 //use java
-                FileUtils.replaceCharactersInFile(entryName, "config/special_character_processing.properties", "UpdateSourceSpecialCharacters");
+                org.exoplatform.crowdin.utils.FileUtils.replaceCharactersInFile(entryName, "config/special_character_processing.properties", "UpdateSourceSpecialCharacters");
 
               }
             } else {
@@ -221,7 +337,7 @@ public class UpdateSourcesMojo extends AbstractCrowdinMojo {
               //use shell script
               //ShellScriptUtils.execShellscript("scripts/per-file-processing.sh", entryName);
               //user java
-              FileUtils.replaceCharactersInFile(entryName, "config/special_character_processing.properties", "UpdateSourceSpecialCharacters");
+              org.exoplatform.crowdin.utils.FileUtils.replaceCharactersInFile(entryName, "config/special_character_processing.properties", "UpdateSourceSpecialCharacters");
 
             }
           }
@@ -238,5 +354,4 @@ public class UpdateSourcesMojo extends AbstractCrowdinMojo {
       getLog().error("Update aborted !", e);
     }
   }
-
 }

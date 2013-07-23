@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -40,6 +41,7 @@ import org.apache.maven.project.MavenProject;
 import org.exoplatform.crowdin.model.CrowdinFile;
 import org.exoplatform.crowdin.model.CrowdinFileFactory;
 import org.exoplatform.crowdin.model.CrowdinTranslation;
+import org.exoplatform.crowdin.model.SourcesRepository;
 import org.exoplatform.crowdin.utils.CrowdinAPIHelper;
 
 /**
@@ -51,7 +53,7 @@ public abstract class AbstractCrowdinMojo extends AbstractMojo {
    * The directory to start parsing from
    */
   @Parameter(property = "startDir", defaultValue = ".")
-  private String startDir;
+  private File startDir;
 
   /**
    * If true, no communication with Crowdin will be done; useful to test
@@ -89,6 +91,9 @@ public abstract class AbstractCrowdinMojo extends AbstractMojo {
 
   @Parameter(property = "exo.crowdin.ignore")
   private String ignore;
+
+  @Parameter
+  private List<SourcesRepository> sourcesRepositories;
 
   @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
@@ -194,7 +199,7 @@ public abstract class AbstractCrowdinMojo extends AbstractMojo {
    * Getters
    */
 
-  public String getStartDir() {
+  public File getStartDir() {
     return startDir;
   }
 
@@ -229,6 +234,10 @@ public abstract class AbstractCrowdinMojo extends AbstractMojo {
 
   public String getLangs() {
     return langs;
+  }
+
+  public List<SourcesRepository> getSourcesRepositories() {
+    return sourcesRepositories;
   }
 
   public String getApplyApprovedOnlyOption() {
