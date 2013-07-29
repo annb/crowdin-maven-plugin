@@ -17,7 +17,13 @@
 # 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 #
 
-projects=( 'platform' 'platform-ui' 'ecms' 'calendar' 'forum' 'wiki' 'social' 'commons' 'integration' )
-versions=( '4.0.x' '4.0.x' '4.0.x' '4.0.x' '4.0.x' '4.0.x' '4.0.x' '4.0.x' '4.0.x' )
+projects=( 'platform' 'wiki'  )
+versions=( '4.0.x' '4.0.x' )
 
 echo "WORKING PROJECTS = [${projects[@]}]"
+
+# Commit message "PLF-XXXX: inject en translation W29"
+plf_langs=( 'en' 'fr' 'vi' 'sv_SE' 'ja' 'es_ES' )
+plf_issue='PLF-9999: '
+plf_week='W30'
+
