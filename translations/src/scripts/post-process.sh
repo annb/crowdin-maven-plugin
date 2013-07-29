@@ -60,7 +60,7 @@ for (( i=0;i<$length;i++)); do
 		MESSAGE_COMMIT="$plf_issue [crowdin-plugin] inject ${plf_langs[${j}]} translation $plf_week"
 		echo "Message commit will be: $MESSAGE_COMMIT "
 		##for each project 
-			if [ -n "$(git status --porcelain | grep '_${plf_langs[${j}]}')" ]; then 
+			if [ -n "$(git status --porcelain)" ]; then 
 			echo "There are some changes"; 		
 	
 				##if other language
