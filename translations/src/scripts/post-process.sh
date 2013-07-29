@@ -66,10 +66,11 @@ for (( i=0;i<$length;i++)); do
 				##if other language
 					git branch -D feature/${versions[${i}]}-translation
 				## Commit message "PLF-XXXX: inject en,fr translation W29"
-					git st --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 3- 
-					git st --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 3- | xargs git add
-					git st --porcelain | grep '_${plf_langs[${j}]}.properties'
-					git st --porcelain | grep '_${plf_langs[${j}]}.properties' | cut -c 3- | xargs git add
+
+					git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 3- 
+					git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 3- | xargs git add
+					git status --porcelain | grep '_${plf_langs[${j}]}.properties'
+					git status --porcelain | grep '_${plf_langs[${j}]}.properties' | cut -c 3- | xargs git add
 					git commit -m "$MESSAGE_COMMIT"				
 					git checkout -b feature/${versions[${i}]}-translation remotes/exodev/feature/${versions[${i}]}-translation
 					git cherry-pick HEAD@{1}
