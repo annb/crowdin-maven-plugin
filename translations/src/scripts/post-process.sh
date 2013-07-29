@@ -56,8 +56,8 @@ for (( i=0;i<$length;i++)); do
 	git fetch exodev
 
 	for ((langs=0;langs<$length_langs;langs++)); do
-		echo "Language: ${length_langs[${lans}]}"
-		MESSAGE_COMMIT="$plf_issue: [crowdin-plugin] inject ${length_langs[${langs}]} translation $plf_week"
+		echo "Language: ${length_langs[${langs}]}"
+		MESSAGE_COMMIT="$plf_issue [crowdin-plugin] inject ${length_langs[${langs}]} translation $plf_week"
 		echo "Message commit will be: $MESSAGE_COMMIT "
 		##for each project 
 			if [ -n "$(git status --porcelain | grep '_${length_langs[${langs}]}')" ]; then 
