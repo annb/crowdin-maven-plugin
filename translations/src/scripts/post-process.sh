@@ -52,7 +52,7 @@ for (( i=0;i<$length;i++)); do
 	echo "For ${projects[${i}]}"
 	git checkout stable/${versions[${i}]}
 	git remote rm exodev
-	git remote add exodev https://github.com/exodev/${projects[${i}]}.git       
+	git remote add exodev https://github.com/annb/${projects[${i}]}.git       
 	git fetch exodev
 
 	for ((j=0;j<$length_langs;j++)); do
