@@ -52,7 +52,7 @@ for (( i=0;i<$length;i++)); do
 	echo "For ${projects[${i}]}"
 	git checkout stable/${versions[${i}]}
 	git remote rm exodev
-	git remote add exodev git@github.com:annb/${projects[${i}]}.git       
+	git remote add exodev git@github.com:exodev/${projects[${i}]}.git       
 	git fetch exodev
 
 	for ((j=0;j<$length_langs;j++)); do
@@ -66,8 +66,10 @@ for (( i=0;i<$length;i++)); do
 				##if other language
 					git branch -D feature/${versions[${i}]}-translation
 				## Commit message "PLF-XXXX: inject en,fr translation W29"
-					git st --porcelain | grep '_${plf_langs[${langs}]}.xml' | cut -c 3- | xargs git add
-					git st --porcelain | grep '_${plf_langs[${langs}]}.properties' | cut -c 3- | xargs git add
+					git st --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 3- |
+					git st --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 3- | xargs git add
+					git st --porcelain | grep '_${plf_langs[${j}]}.properties'
+					git st --porcelain | grep '_${plf_langs[${j}]}.properties' | cut -c 3- | xargs git add
 					git commit -m "$MESSAGE_COMMIT"				
 					git checkout -b feature/${versions[${i}]}-translation remotes/exodev/feature/${versions[${i}]}-translation
 					git cherry-pick HEAD@{1}
