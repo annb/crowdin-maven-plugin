@@ -66,7 +66,7 @@ for (( i=0;i<$length;i++)); do
 			NUMBER_PROPERTIES=$(git status --porcelain | grep $FILTER_LANGPROPERTIES | wc -l)
 			echo "number xml: "+ $NUMBER_XML + " number properties: "+ $NUMBER_PROPERTIES
 
-			if [ ($NUMBER_XML + $NUMBER_PROPERTIES) > 0 ]; then 
+			if [ ($NUMBER_XML + $NUMBER_PROPERTIES) -ne 0 ]; then 
 				MESSAGE_COMMIT="${plf_issue[${j}]}: [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
 				echo "Message commit: $MESSAGE_COMMIT "
 				echo "There are some changes"; 		
