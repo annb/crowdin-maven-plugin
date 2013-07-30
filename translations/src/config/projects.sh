@@ -25,6 +25,6 @@ echo "WORKING PROJECTS = [${projects[@]}]"
 # Commit message "PLF-XXXX: inject en translation W29"
 plf_langsFull=( 'English' 'French' 'Vietnamese' 'Swedish' 'Japanese' 'Spanish' )
 plf_langs=( 'en' 'fr' 'vi' 'sv_SE' 'ja' 'es_ES' )
-plf_issue='PLF-9999:'
+plf_issue=( 'PLF-1111' 'PLF-2222' 'PLF-3333' 'PLF-4444' 'PLF-5555' 'PLF-6666' )
 plf_week='W30'
 
