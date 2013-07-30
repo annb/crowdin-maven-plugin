@@ -58,7 +58,7 @@ for (( i=0;i<$length;i++)); do
 	for ((j=0;j<$length_langs;j++)); do
 		echo "Language: ${plf_langsFull[${j}]} (${plf_langs[${j}]})"
 		MESSAGE_COMMIT="$plf_issue [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
-		echo "Message commit will be: $MESSAGE_COMMIT "
+		echo "Message commit: $MESSAGE_COMMIT "
 		##for each project 
 			if [ -n "$(git status --porcelain)" ]; then 
 			echo "There are some changes"; 		
@@ -66,7 +66,7 @@ for (( i=0;i<$length;i++)); do
 				##if other language
 					git branch -D feature/${versions[${i}]}-translation
 				## Commit message "PLF-XXXX: inject en,fr translation W29"
-
+					echo '_${plf_langs[${j}]}.xml and _${plf_langs[${j}]}.properties' 
 					`git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 4-`
 					git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 4- | xargs git add
 					`git status --porcelain | grep '_${plf_langs[${j}]}.properties'`
