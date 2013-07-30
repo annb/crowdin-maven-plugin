@@ -64,17 +64,23 @@ for (( i=0;i<$length;i++)); do
 			FILTER_LANGPROPERTIES="${plf_langs[${j}]}.properties"
 			NUMBER_XML=$(git status --porcelain | grep $FILTER_LANGXML | wc -l)
 			NUMBER_PROPERTIES=$(git status --porcelain | grep $FILTER_LANGPROPERTIES | wc -l)
-			echo "number xml: " $NUMBER_XML  " number properties: " $NUMBER_PROPERTIES
+			echo "number file xml: " $NUMBER_XML  " number file properties: " $NUMBER_PROPERTIES
 
 			if [ $(($NUMBER_XML + $NUMBER_PROPERTIES)) -ne 0 ]; then 
 				MESSAGE_COMMIT="${plf_issue[${j}]}: [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
 				echo "Message commit: $MESSAGE_COMMIT "
-				echo "There are some changes"; 		
 				
 				git branch -D feature/${versions[${i}]}-translation
+				if [ $NUMBER_XML -ne 0 ]; then 
+					echo "\t add xml files"
+					git status --porcelain | grep $FILTER_LANGXML | cut -c 4- | xargs git add
+				fi
+				if [ $NUMBER_PROPERTIES -ne 0 ]; then 
+					echo "\t add properties files"
+					git status --porcelain | grep $FILTER_LANGPROPERTIES | cut -c 4- | xargs git add
+				fi
+
 				## Commit message "PLF-XXXX: inject en,fr translation W29"
-				git status --porcelain | grep $FILTER_LANGXML | cut -c 4- | xargs git add
-				git status --porcelain | grep $FILTER_LANGPROPERTIES | cut -c 4- | xargs git add
 				git commit -m "$MESSAGE_COMMIT"				
 				git checkout -b feature/${versions[${i}]}-translation remotes/exodev/feature/${versions[${i}]}-translation
 				git cherry-pick HEAD@{1}
