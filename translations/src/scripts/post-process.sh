@@ -81,6 +81,7 @@ for (( i=0;i<$length;i++)); do
 				if [ $NUMBER_XML -ne 0 ]; then 
 					git status --porcelain | grep $FILTER_LANGXML | cut -c 4- | xargs git add
 					#case when default.xml and en languages
+					echo "Special case: number xml" $NUMBER_SPECIAL_XML "number properties" $NUMBER_SPECIAL_PROPERTIES
 					if [$(($NUMBER_SPECIAL_XML + $NUMBER_SPECIAL_PROPERTIES)) -ne 0 ] && [${plf_langs[${j}]} == "en"]; then
 						echo "add default.xml"
 						git status --porcelain | grep $SPECIAL_FILTER_EN_LANGXML | cut -c 4- | xargs git add
