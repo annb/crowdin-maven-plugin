@@ -56,9 +56,9 @@ for (( i=0;i<$length;i++)); do
 	git remote add exodev https://github.com/annb/${projects[${i}]}.git       
 	git fetch exodev
 
-
 	#for each language
 	for ((j=0;j<$length_langs;j++)); do
+			echo "-------------------"
 			echo "Language: ${plf_langsFull[${j}]} (${plf_langs[${j}]})"
 			FILTER_LANGXML="${plf_langs[${j}]}.xml"
 			FILTER_LANGPROPERTIES="${plf_langs[${j}]}.properties"
@@ -68,15 +68,14 @@ for (( i=0;i<$length;i++)); do
 
 			if [ $(($NUMBER_XML + $NUMBER_PROPERTIES)) -ne 0 ]; then 
 				MESSAGE_COMMIT="${plf_issue[${j}]}: [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
-				echo "Message commit: $MESSAGE_COMMIT "
+				echo "Message commit: $MESSAGE_COMMIT"
+				echo ""				
 				
 				git branch -D feature/${versions[${i}]}-translation
 				if [ $NUMBER_XML -ne 0 ]; then 
-					echo "\t add xml files"
 					git status --porcelain | grep $FILTER_LANGXML | cut -c 4- | xargs git add
 				fi
 				if [ $NUMBER_PROPERTIES -ne 0 ]; then 
-					echo "\t add properties files"
 					git status --porcelain | grep $FILTER_LANGPROPERTIES | cut -c 4- | xargs git add
 				fi
 
@@ -91,7 +90,6 @@ for (( i=0;i<$length;i++)); do
 			else 
 			  echo "no changes, no commit ";
 			fi
-		echo "-------------------"
 		echo ""
 	done
   fi
