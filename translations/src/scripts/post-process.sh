@@ -46,6 +46,7 @@ echo ""
 
 
 echo ""
+##for each project 
 for (( i=0;i<$length;i++)); do
   if [ -d $EXO_PROJECTS/${projects[${i}]} ]; then
 	cd $EXO_PROJECTS/${projects[${i}]}
@@ -55,26 +56,31 @@ for (( i=0;i<$length;i++)); do
 	git remote add exodev https://github.com/annb/${projects[${i}]}.git       
 	git fetch exodev
 
-	for ((j=0;j<$length_langs;j++)); do
-		echo "Language: ${plf_langsFull[${j}]} (${plf_langs[${j}]})"
-		MESSAGE_COMMIT="${plf_issue[${j}]}: [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
-		echo "Message commit: $MESSAGE_COMMIT "
-		##for each project 
-			if [ -n "$(git status --porcelain)" ]; then 
-			echo "There are some changes"; 		
-				FILTER_LANGXML="${plf_langs[${j}]}.xml"
-				FILTER_LANGPROPERTIES="${plf_langs[${j}]}.properties"
-					git branch -D feature/${versions[${i}]}-translation
-				## Commit message "PLF-XXXX: inject en,fr translation W29"
 
-					git status --porcelain | grep $FILTER_LANGXML | cut -c 4- | xargs git add
-					git status --porcelain | grep $FILTER_LANGPROPERTIES | cut -c 4- | xargs git add
-					git commit -m "$MESSAGE_COMMIT"				
-					git checkout -b feature/${versions[${i}]}-translation remotes/exodev/feature/${versions[${i}]}-translation
-					git cherry-pick HEAD@{1}
-					echo "Push to feature/${versions[${i}]}-translation"
-				#	git push exodev feature/${versions[${i}]}-translation
-					git checkout stable/${versions[${i}]}					
+	#for each language
+	for ((j=0;j<$length_langs;j++)); do
+			echo "Language: ${plf_langsFull[${j}]} (${plf_langs[${j}]})"
+			FILTER_LANGXML="${plf_langs[${j}]}.xml"
+			FILTER_LANGPROPERTIES="${plf_langs[${j}]}.properties"
+			NUMBER_XML=$(git status --porcelain | grep $FILTER_LANGXML | wc -l)
+			NUMBER_PROPERTIES=$(git status --porcelain | grep $FILTER_LANGPROPERTIES | wc -l)
+			echo "number xml: "+ $NUMBER_XML + " number properties: "+ $NUMBER_PROPERTIES
+
+			if [ ($NUMBER_XML + $NUMBER_PROPERTIES) > 0 ]; then 
+				MESSAGE_COMMIT="${plf_issue[${j}]}: [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
+				echo "Message commit: $MESSAGE_COMMIT "
+				echo "There are some changes"; 		
+				
+				git branch -D feature/${versions[${i}]}-translation
+				## Commit message "PLF-XXXX: inject en,fr translation W29"
+				git status --porcelain | grep $FILTER_LANGXML | cut -c 4- | xargs git add
+				git status --porcelain | grep $FILTER_LANGPROPERTIES | cut -c 4- | xargs git add
+				git commit -m "$MESSAGE_COMMIT"				
+				git checkout -b feature/${versions[${i}]}-translation remotes/exodev/feature/${versions[${i}]}-translation
+				git cherry-pick HEAD@{1}
+				echo "Push to feature/${versions[${i}]}-translation"
+				#git push exodev feature/${versions[${i}]}-translation
+				git checkout stable/${versions[${i}]}					
 									
 			else 
 			  echo "no changes, no commit ";
