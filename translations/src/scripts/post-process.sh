@@ -62,13 +62,13 @@ for (( i=0;i<$length;i++)); do
 		##for each project 
 			if [ -n "$(git status --porcelain)" ]; then 
 			echo "There are some changes"; 		
-				LANGXML="_${plf_langs[${j}]}.xml"
-				LANGPROPERTIES="_${plf_langs[${j}]}.properties"
+				FILTER_LANGXML="${plf_langs[${j}]}.xml"
+				FILTER_LANGPROPERTIES="${plf_langs[${j}]}.properties"
 					git branch -D feature/${versions[${i}]}-translation
 				## Commit message "PLF-XXXX: inject en,fr translation W29"
-					echo "$LANGXML and $LANGPROPERTIES"
-					git status --porcelain | grep $LANGXML | cut -c 4- | xargs git add
-					git status --porcelain | grep $LANGPROPERTIES | cut -c 3- | xargs git add
+
+					git status --porcelain | grep $FILTER_LANGXML | cut -c 4- | xargs git add
+					git status --porcelain | grep $FILTER_LANGPROPERTIES | cut -c 4- | xargs git add
 					git commit -m "$MESSAGE_COMMIT"				
 					git checkout -b feature/${versions[${i}]}-translation remotes/exodev/feature/${versions[${i}]}-translation
 					git cherry-pick HEAD@{1}
