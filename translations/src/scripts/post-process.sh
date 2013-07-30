@@ -66,6 +66,12 @@ for (( i=0;i<$length;i++)); do
 			NUMBER_PROPERTIES=$(git status --porcelain | grep $FILTER_LANGPROPERTIES | wc -l)
 			echo "number file xml: " $NUMBER_XML  " number file properties: " $NUMBER_PROPERTIES
 
+			#special case for en with "default"
+			SPECIAL_FILTER_EN_LANGXML="default.xml"
+			SPECIAL_FILTER_EN_LANGXML="default.properties"
+			NUMBER_SPECIAL_XML=$(git status --porcelain | grep $SPECIAL_FILTER_EN_LANGXML | wc -l)
+			NUMBER_SPECIAL_PROPERTIES=$(git status --porcelain | grep $SPECIAL_FILTER_EN_LANGXML | wc -l)
+
 			if [ $(($NUMBER_XML + $NUMBER_PROPERTIES)) -ne 0 ]; then 
 				MESSAGE_COMMIT="${plf_issue[${j}]}: [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
 				echo "Message commit: $MESSAGE_COMMIT"
@@ -74,6 +80,12 @@ for (( i=0;i<$length;i++)); do
 				git branch -D feature/${versions[${i}]}-translation
 				if [ $NUMBER_XML -ne 0 ]; then 
 					git status --porcelain | grep $FILTER_LANGXML | cut -c 4- | xargs git add
+					#case when default.xml and en languages
+					if [$(($NUMBER_SPECIAL_XML + $NUMBER_SPECIAL_PROPERTIES)) -ne 0 ] && [${plf_langs[${j}]} == "en"]; then
+						echo "add default.xml"
+						git status --porcelain | grep $SPECIAL_FILTER_EN_LANGXML | cut -c 4- | xargs git add
+					fi	
+
 				fi
 				if [ $NUMBER_PROPERTIES -ne 0 ]; then 
 					git status --porcelain | grep $FILTER_LANGPROPERTIES | cut -c 4- | xargs git add
