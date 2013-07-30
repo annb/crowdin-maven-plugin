@@ -56,8 +56,8 @@ for (( i=0;i<$length;i++)); do
 	git fetch exodev
 
 	for ((j=0;j<$length_langs;j++)); do
-		echo "Language: ${plf_langs[${j}]}"
-		MESSAGE_COMMIT="$plf_issue [crowdin-plugin] inject ${plf_langs[${j}]} translation $plf_week"
+		echo "Language: ${plf_langsFull[${j}]} (${plf_langs[${j}]})"
+		MESSAGE_COMMIT="$plf_issue [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
 		echo "Message commit will be: $MESSAGE_COMMIT "
 		##for each project 
 			if [ -n "$(git status --porcelain)" ]; then 
@@ -67,9 +67,9 @@ for (( i=0;i<$length;i++)); do
 					git branch -D feature/${versions[${i}]}-translation
 				## Commit message "PLF-XXXX: inject en,fr translation W29"
 
-					git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 3- 
-					git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 3- | xargs git add
-					git status --porcelain | grep '_${plf_langs[${j}]}.properties'
+					`git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 4-`
+					git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 4- | xargs git add
+					`git status --porcelain | grep '_${plf_langs[${j}]}.properties'`
 					git status --porcelain | grep '_${plf_langs[${j}]}.properties' | cut -c 3- | xargs git add
 					git commit -m "$MESSAGE_COMMIT"				
 					git checkout -b feature/${versions[${i}]}-translation remotes/exodev/feature/${versions[${i}]}-translation
