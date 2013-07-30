@@ -62,9 +62,9 @@ for (( i=0;i<$length;i++)); do
 			echo "Language: ${plf_langsFull[${j}]} (${plf_langs[${j}]})"
 			FILTER_LANGXML="${plf_langs[${j}]}.xml"
 			FILTER_LANGPROPERTIES="${plf_langs[${j}]}.properties"
-			NUMBER_XML=$(git status --porcelain | grep $FILTER_LANGXML | wc -l)
-			NUMBER_PROPERTIES=$(git status --porcelain | grep $FILTER_LANGPROPERTIES | wc -l)
-			echo "number xml: "+ $NUMBER_XML + " number properties: "+ $NUMBER_PROPERTIES
+			NUMBER_XML=`git status --porcelain | grep $FILTER_LANGXML | wc -l`
+			NUMBER_PROPERTIES=`git status --porcelain | grep $FILTER_LANGPROPERTIES | wc -l`
+			echo "number xml: " $NUMBER_XML  " number properties: " $NUMBER_PROPERTIES
 
 			if [ ($NUMBER_XML + $NUMBER_PROPERTIES) -ne 0 ]; then 
 				MESSAGE_COMMIT="${plf_issue[${j}]}: [crowdin-plugin] inject ${plf_langsFull[${j}]} (${plf_langs[${j}]}) translation $plf_week"
