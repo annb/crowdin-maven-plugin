@@ -62,15 +62,16 @@ for (( i=0;i<$length;i++)); do
 		##for each project 
 			if [ -n "$(git status --porcelain)" ]; then 
 			echo "There are some changes"; 		
-	
+				LANGXML="_${plf_langs[${j}]}.xml"
+				LANGPROPERTIES="_${plf_langs[${j}]}.properties"
 				##if other language
 					git branch -D feature/${versions[${i}]}-translation
 				## Commit message "PLF-XXXX: inject en,fr translation W29"
-					echo '_${plf_langs[${j}]}.xml and _${plf_langs[${j}]}.properties' 
-					`git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 4-`
-					git status --porcelain | grep '_${plf_langs[${j}]}.xml' | cut -c 4- | xargs git add
-					`git status --porcelain | grep '_${plf_langs[${j}]}.properties'`
-					git status --porcelain | grep '_${plf_langs[${j}]}.properties' | cut -c 3- | xargs git add
+					echo "$LANGXML and $LANGPROPERTIES"
+					`git status --porcelain | grep $LANGXML | cut -c 4-`
+					git status --porcelain | grep $LANGXML | cut -c 4- | xargs git add
+					`git status --porcelain | grep $LANGPROPERTIES`
+					git status --porcelain | grep $LANGPROPERTIES | cut -c 3- | xargs git add
 					git commit -m "$MESSAGE_COMMIT"				
 					git checkout -b feature/${versions[${i}]}-translation remotes/exodev/feature/${versions[${i}]}-translation
 					git cherry-pick HEAD@{1}
