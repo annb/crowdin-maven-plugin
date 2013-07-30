@@ -68,9 +68,9 @@ for (( i=0;i<$length;i++)); do
 
 			#special case for en with "default"
 			SPECIAL_FILTER_EN_LANGXML="default.xml"
-			SPECIAL_FILTER_EN_LANGXML="default.properties"
+			SPECIAL_FILTER_EN_PROPERTIES="default.properties"
 			NUMBER_SPECIAL_XML=$(git status --porcelain | grep $SPECIAL_FILTER_EN_LANGXML | wc -l)
-			NUMBER_SPECIAL_PROPERTIES=$(git status --porcelain | grep $SPECIAL_FILTER_EN_LANGXML | wc -l)
+			NUMBER_SPECIAL_PROPERTIES=$(git status --porcelain | grep $SPECIAL_FILTER_EN_PROPERTIES | wc -l)
 
 
 			#case when default.xml and en languages
