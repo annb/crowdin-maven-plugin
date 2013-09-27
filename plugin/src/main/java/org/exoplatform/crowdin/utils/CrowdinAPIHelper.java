@@ -88,16 +88,16 @@ public class CrowdinAPIHelper {
             "post(\"/add-file?key=" + projectKey + ").andReturn().asString();");
       return "<dryRun success/>";
     }
-    // android format
-    if (_file.getProject().contains("android")) {
-      return given().multiPart("type", "android")
-                    .multiPart("files[" + _file.getCrowdinPath() + "]", _file.getFile())
-                    .post("/add-file?key=" + projectKey)
-                    .andReturn()
-                    .asString();
-    }
+//    // android format
+//    if (_file.getProject().contains("android")) {
+//      return given().multiPart("type", "android")
+//                    .multiPart("files[" + _file.getCrowdinPath() + "]", _file.getFile())
+//                    .post("/add-file?key=" + projectKey)
+//                    .andReturn()
+//                    .asString();
+//    }
     // ios format
-    else if (_file.getProject().contains("ios")) {
+    if (_file.getProject().contains("ios")) {
       return given().multiPart("type", "macosx")
                     .multiPart("files[" + _file.getCrowdinPath() + "]", _file.getFile())
                     .post("/add-file?key=" + projectKey)

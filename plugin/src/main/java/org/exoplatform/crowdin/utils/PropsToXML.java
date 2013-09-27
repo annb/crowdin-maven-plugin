@@ -86,8 +86,22 @@ public class PropsToXML {
     String masterFile = "";
 
     if (type.equals(Type.PORTLET)) {
-      String origFileName = fileName.substring(0, fileName.lastIndexOf("_"));
+      String origFileName = "";
+      //if android, origFileName not have _
+      if (propsFilePath.contains("android/res/values")){
+         origFileName = fileName;
+      }
+      else{
+       origFileName = fileName.substring(0, fileName.lastIndexOf("_"));
+      }
+      
       masterFile = outputPath + origFileName + ".xml";
+      
+      //in android master file will be in "res/values-ar/strings.xml"
+      if (propsFilePath.contains("android/res/values")){
+        String [] outPutPathArray = outputPath.split("android/res/values");
+        masterFile = outPutPathArray[0] + "android/res/values/"+ origFileName+ ".xml";
+     }
 
       if (!(new File(masterFile)).exists()) masterFile = outputPath + origFileName + "_en.xml";
 

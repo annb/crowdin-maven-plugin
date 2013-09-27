@@ -35,6 +35,10 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 public class IOSResouceBundleFileUtils {
 
   static Log log;
+  static Boolean isStillComment = false;
+
+  static List<String> crowdinList ;
+  static List<String> resourcelist ;
 
   public static void setLog(Log varLog) {
     log = varLog;
@@ -110,10 +114,14 @@ public class IOSResouceBundleFileUtils {
     }
   }
 
-  /*
-   * Update translation from crowdin a crowdin file line to a resouce bundle file line
-   */
-  public static boolean updateTranslationByLine(String sourceLine, String crowdinLine) {
+/**
+ * Update translation from crowdin a crowdin file line to a resouce bundle file line
+ * verify if key translation is changed, if yes apply to source
+ * @param sourceLine 
+ * @param crowdinLine
+ * @return
+ */
+  public static boolean updateTranslationByLine(int index,String sourceLine, String crowdinLine) {
     if(sourceLine.trim().length()==0 || crowdinLine.trim().length() ==0)
       return false;
     try{
@@ -124,11 +132,15 @@ public class IOSResouceBundleFileUtils {
         String crowdinValue = crowdinLine.split("=")[1].trim();
         buffer.append(" = ").append(crowdinValue);
         sourceLine = buffer.toString();
+        getLog().info("=======updateTranslationByLine ====" + sourceLine);
+        resourcelist.set(index, sourceLine);
         return true;
       }      
       
       return false;
     }catch (Exception e) {
+      getLog().error("=======updateTranslationByLine ====" + e.getMessage());
+      
       return false;
     }
   }
@@ -142,21 +154,37 @@ public class IOSResouceBundleFileUtils {
 
     String lineStr = linesOfFile.get(lineIndex).trim();
 
-    if (lineStr.length() == 0)
+    if (lineStr.length() == 0){
       return true;
-
-    if (lineStr.indexOf("//") == 0 || lineStr.indexOf("/*") == 0)
-      return true;
-
-    int checkIndex = lineIndex;
-
-    while (checkIndex >= 0) {
-      String previousLineString = linesOfFile.get(checkIndex).trim();
-      if (previousLineString.indexOf("//") == 0 || previousLineString.indexOf("/*") == 0)
-        return true;
-      else
-        checkIndex--;
     }
+    else if (lineStr.startsWith("/*")){
+      isStillComment = true;
+      return true;
+    }
+    else if (lineStr.endsWith("*/")){
+      isStillComment = false;
+      return true;
+    }
+    else if(isStillComment){
+      return true;
+    }
+    else if (lineStr.indexOf("//") == 0 ){
+      return true;
+    }
+    else if (!isStillComment){
+      return false;
+    }
+    
+
+//    int checkIndex = lineIndex;
+//
+//    while (checkIndex >= 0) {
+//      String previousLineString = linesOfFile.get(checkIndex).trim();
+//      if (previousLineString.indexOf("//") == 0 || previousLineString.indexOf("/*") == 0)
+//        return true;
+//      else
+//        checkIndex--;
+//    }
     return false;
   }
 
@@ -164,23 +192,32 @@ public class IOSResouceBundleFileUtils {
    * Inject translation from crowdin translation file to resouce bundle file
    */
   public static boolean injectTranslation(String crowdinFilePath, String resourceMasterFilePath, String resoureTranslationFilePath) {
-    List<String> crowdinList = readIOSResourceSkipCommentAndEmtyLine(crowdinFilePath);
-    List<String> resourcelist = readAllIOSResource(resourceMasterFilePath);
+    crowdinList = readIOSResourceSkipCommentAndEmtyLine(crowdinFilePath);
+    resourcelist = readAllIOSResource(resourceMasterFilePath);
 
+    getLog().info("=======crowdinFilePath===="+ crowdinFilePath);
+    File crowdinFile = new File(crowdinFilePath);     
+    crowdinFile.delete();
+    
     if (resourcelist == null || resourcelist.isEmpty())
       return false;
 
     for (int resouceIndex = 0; resouceIndex <= resourcelist.size(); resouceIndex++) {
+      getLog().info("=======injectTranslation1====");
       if (isCommentOrEmptyLine(resouceIndex, resourcelist) == false) {
 
         for (int crowdinIndex = 0; crowdinIndex <= crowdinList.size(); crowdinIndex++) {
-          if (updateTranslationByLine(resourcelist.get(resouceIndex), crowdinList.get(crowdinIndex))) {
+          if (updateTranslationByLine(resouceIndex, resourcelist.get(resouceIndex), crowdinList.get(crowdinIndex))) {
             crowdinList.remove(crowdinIndex);
             break;
           }
         }
       }
+      getLog().info("=======injectTranslation2====");
+      
     }
+    getLog().info("=======saveListStringToFile====");
+    
     return saveListStringToFile(resoureTranslationFilePath, resourcelist);
   }
 
